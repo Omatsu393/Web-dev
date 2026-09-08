@@ -1,0 +1,24 @@
+name: 機能追加
+description: 新しい機能や改善を提案する
+title: "[Feature] "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: purpose
+    attributes:
+      label: 目的
+      description: 何を解決する機能かを記載してください。
+    validations:
+      required: true
+  - type: textarea
+    id: requirements
+    attributes:
+      label: 要件
+      description: 必要な動作や受け入れ条件を記載してください。
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: 補足
+      description: 画面案、参考資料、制約などがあれば記載してください。

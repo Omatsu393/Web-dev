@@ -1,0 +1,57 @@
+name: omatsu393
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/var/www/html
+      - composer-cache:/tmp/composer-cache
+    environment:
+      COMPOSER_CACHE_DIR: /tmp/composer-cache
+    depends_on:
+      db:
+        condition: service_healthy
+
+  node:
+    image: node:22-alpine
+    restart: unless-stopped
+    working_dir: /var/www/html
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port $${VITE_PORT:-5173}"
+    ports:
+      - "5173:5173"
+    volumes:
+      - .:/var/www/html
+      - node-modules:/var/www/html/node_modules
+    environment:
+      CHOKIDAR_USEPOLLING: "true"
+      VITE_PORT: ${VITE_PORT:-5173}
+
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    ports:
+      - "${DB_FORWARD_PORT:-3307}:3306"
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-omatsu393}
+      MYSQL_USER: ${DB_USERNAME:-omatsu393}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-local_password}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-local_root_password}
+      TZ: Asia/Tokyo
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p$${MYSQL_ROOT_PASSWORD} --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+
+volumes:
+  composer-cache:
+  mysql-data:
+  node-modules:

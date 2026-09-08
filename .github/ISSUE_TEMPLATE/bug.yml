@@ -1,0 +1,28 @@
+name: 不具合報告
+description: 再現可能な不具合を報告する
+title: "[Bug] "
+labels: [bug]
+body:
+  - type: textarea
+    id: symptom
+    attributes:
+      label: 発生していること
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 再現手順
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期待する動作
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: 環境
+      placeholder: Windows 11 / Chrome など
