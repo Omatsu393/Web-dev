@@ -86,4 +86,71 @@ if (comparisonForm) {
     populateModels(modelSelect.dataset.selected);
     populateVariants(variantSelect.dataset.selected);
     applyVariant(false);
+
+    const currentLocationButton = document.querySelector('#use-current-location');
+    const currentLocationStatus = document.querySelector('#current-location-status');
+    const originInput = document.querySelector('#origin');
+    const originLatitude = document.querySelector('#origin_latitude');
+    const originLongitude = document.querySelector('#origin_longitude');
+    let locationOriginLabel = originLatitude.value && originLongitude.value ? originInput.value : '';
+
+    const clearCurrentLocation = () => {
+        originLatitude.value = '';
+        originLongitude.value = '';
+        locationOriginLabel = '';
+    };
+
+    const locationErrorMessage = (error) => {
+        if (error.code === error.PERMISSION_DENIED) {
+            return '位置情報が許可されませんでした。出発地を手入力してください。';
+        }
+
+        if (error.code === error.TIMEOUT) {
+            return '現在地の取得がタイムアウトしました。もう一度試すか、手入力してください。';
+        }
+
+        return '現在地を取得できませんでした。出発地を手入力してください。';
+    };
+
+    if (!navigator.geolocation) {
+        currentLocationButton.disabled = true;
+        currentLocationStatus.textContent = 'このブラウザでは現在地取得を利用できません。出発地を手入力してください。';
+    } else {
+        currentLocationButton.addEventListener('click', () => {
+            clearCurrentLocation();
+            currentLocationButton.disabled = true;
+            currentLocationStatus.textContent = '現在地を取得しています…';
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const latitude = position.coords.latitude.toFixed(6);
+                    const longitude = position.coords.longitude.toFixed(6);
+
+                    originLatitude.value = latitude;
+                    originLongitude.value = longitude;
+                    locationOriginLabel = `現在地（${latitude}, ${longitude}）`;
+                    originInput.value = locationOriginLabel;
+                    currentLocationStatus.textContent = '現在地を出発地に設定しました。';
+                    currentLocationButton.disabled = false;
+                },
+                (error) => {
+                    currentLocationStatus.textContent = locationErrorMessage(error);
+                    currentLocationButton.disabled = false;
+                    originInput.focus();
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 60000,
+                },
+            );
+        });
+    }
+
+    originInput.addEventListener('input', () => {
+        if (locationOriginLabel && originInput.value !== locationOriginLabel) {
+            clearCurrentLocation();
+            currentLocationStatus.textContent = '手入力の出発地を使用します。';
+        }
+    });
 }

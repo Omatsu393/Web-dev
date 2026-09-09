@@ -40,7 +40,12 @@
 
                     <div class="grid gap-6 sm:grid-cols-2">
                         <div>
-                            <label for="origin" class="block text-sm font-semibold text-slate-100">出発地</label>
+                            <div class="flex items-center justify-between gap-3">
+                                <label for="origin" class="block text-sm font-semibold text-slate-100">出発地</label>
+                                <button id="use-current-location" type="button" class="rounded-full border border-emerald-400/40 bg-emerald-400/10 px-3 py-1.5 text-xs font-semibold text-emerald-200 transition hover:border-emerald-300 hover:bg-emerald-400/20 focus:outline-none focus:ring-4 focus:ring-emerald-400/20 disabled:cursor-not-allowed disabled:opacity-50">
+                                    現在地を使用
+                                </button>
+                            </div>
                             <input
                                 id="origin"
                                 name="origin"
@@ -55,9 +60,18 @@
                                     'border-white/10 focus:border-emerald-400 focus:ring-emerald-400/10' => ! $errors->has('origin'),
                                 ])
                             >
-                            <p id="origin-hint" class="mt-2 text-xs text-slate-400">住所、駅名、施設名など</p>
+                            <input id="origin_latitude" name="origin_latitude" type="hidden" value="{{ old('origin_latitude') }}">
+                            <input id="origin_longitude" name="origin_longitude" type="hidden" value="{{ old('origin_longitude') }}">
+                            <p id="origin-hint" class="mt-2 text-xs text-slate-400">住所、駅名、施設名など。位置情報を許可しない場合も手入力できます。</p>
+                            <p id="current-location-status" class="mt-2 text-xs text-slate-400" role="status" aria-live="polite"></p>
                             @error('origin')
                                 <p id="origin-error" class="mt-2 text-sm text-rose-300">{{ $message }}</p>
+                            @enderror
+                            @error('origin_latitude')
+                                <p class="mt-2 text-sm text-rose-300">{{ $message }}</p>
+                            @enderror
+                            @error('origin_longitude')
+                                <p class="mt-2 text-sm text-rose-300">{{ $message }}</p>
                             @enderror
                         </div>
 
