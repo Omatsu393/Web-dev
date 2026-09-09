@@ -238,6 +238,33 @@
                                 <p id="fuel-price-error" class="mt-2 text-sm text-rose-300">{{ $message }}</p>
                             @enderror
                         </div>
+
+                        <div>
+                            <label for="passenger_count" class="block text-sm font-semibold text-slate-100">乗車人数</label>
+                            <div class="relative mt-2">
+                                <input
+                                    id="passenger_count"
+                                    name="passenger_count"
+                                    type="number"
+                                    inputmode="numeric"
+                                    min="1"
+                                    max="20"
+                                    step="1"
+                                    value="{{ old('passenger_count', '1') }}"
+                                    aria-describedby="passenger-count-hint passenger-count-error"
+                                    @class([
+                                        'w-full rounded-2xl border bg-slate-900/80 px-4 py-3.5 pr-12 text-white outline-none transition focus:ring-4',
+                                        'border-rose-400 focus:border-rose-300 focus:ring-rose-400/10' => $errors->has('passenger_count'),
+                                        'border-white/10 focus:border-emerald-400 focus:ring-emerald-400/10' => ! $errors->has('passenger_count'),
+                                    ])
+                                >
+                                <span class="pointer-events-none absolute inset-y-0 right-4 flex items-center text-sm text-slate-400">人</span>
+                            </div>
+                            <p id="passenger-count-hint" class="mt-2 text-xs text-slate-400">1人あたりの金額計算に使用します。</p>
+                            @error('passenger_count')
+                                <p id="passenger-count-error" class="mt-2 text-sm text-rose-300">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
 
                     <fieldset>

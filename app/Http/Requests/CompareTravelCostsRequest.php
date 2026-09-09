@@ -28,6 +28,7 @@ class CompareTravelCostsRequest extends FormRequest
             'fuel_efficiency' => ['required', 'numeric', 'min:1', 'max:100'],
             'fuel_type' => ['required', Rule::enum(FuelType::class)],
             'fuel_price' => ['required', 'integer', 'min:1', 'max:1000'],
+            'passenger_count' => ['required', 'integer', 'between:1,20'],
             'toll_preference' => ['required', 'in:compare,prefer_toll,avoid_toll'],
         ];
     }
@@ -98,6 +99,9 @@ class CompareTravelCostsRequest extends FormRequest
             'fuel_price.integer' => '燃料単価は整数で入力してください。',
             'fuel_price.min' => '燃料単価は1円/L以上で入力してください。',
             'fuel_price.max' => '燃料単価は1,000円/L以下で入力してください。',
+            'passenger_count.required' => '乗車人数を入力してください。',
+            'passenger_count.integer' => '乗車人数は整数で入力してください。',
+            'passenger_count.between' => '乗車人数は1〜20人で入力してください。',
             'toll_preference.required' => '有料道路の利用条件を選択してください。',
             'toll_preference.in' => '有料道路の利用条件を正しく選択してください。',
         ];
