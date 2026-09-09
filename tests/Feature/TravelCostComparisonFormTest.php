@@ -28,6 +28,9 @@ class TravelCostComparisonFormTest extends TestCase
             ->assertOk()
             ->assertSee('高速道路 vs 下道')
             ->assertSee('出発地')
+            ->assertSee('現在地を使用')
+            ->assertSee('origin_latitude', false)
+            ->assertSee('origin_longitude', false)
             ->assertSee('目的地')
             ->assertSee('メーカー')
             ->assertSee('車種')
@@ -123,6 +126,50 @@ class TravelCostComparisonFormTest extends TestCase
 
         $response->assertSessionHasErrors([
             'vehicle_variant_id' => 'メーカー、車種、グレードの組み合わせを正しく選択してください。',
+        ]);
+    }
+
+    public function test_current_location_coordinates_are_accepted(): void
+    {
+        [$make, $model, $variant] = $this->priusSelection();
+
+        $response = $this->post(route('comparisons.store'), [
+            'origin' => '現在地（35.681236, 139.767125）',
+            'origin_latitude' => 35.681236,
+            'origin_longitude' => 139.767125,
+            'destination' => '名古屋駅',
+            'vehicle_make_id' => $make->id,
+            'vehicle_model_id' => $model->id,
+            'vehicle_variant_id' => $variant->id,
+            'fuel_efficiency' => 28.6,
+            'fuel_price' => 175,
+            'toll_preference' => 'compare',
+        ]);
+
+        $response
+            ->assertRedirect(route('comparisons.create'))
+            ->assertSessionHasNoErrors();
+    }
+
+    public function test_current_location_requires_a_valid_coordinate_pair(): void
+    {
+        [$make, $model, $variant] = $this->priusSelection();
+
+        $response = $this->post(route('comparisons.store'), [
+            'origin' => '現在地',
+            'origin_latitude' => 91,
+            'destination' => '名古屋駅',
+            'vehicle_make_id' => $make->id,
+            'vehicle_model_id' => $model->id,
+            'vehicle_variant_id' => $variant->id,
+            'fuel_efficiency' => 28.6,
+            'fuel_price' => 175,
+            'toll_preference' => 'compare',
+        ]);
+
+        $response->assertSessionHasErrors([
+            'origin_latitude' => '現在地の緯度を正しく取得できませんでした。',
+            'origin_longitude' => '現在地の緯度と経度を両方取得してください。',
         ]);
     }
 

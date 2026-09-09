@@ -19,6 +19,8 @@ class CompareTravelCostsRequest extends FormRequest
     {
         return [
             'origin' => ['required', 'string', 'max:120'],
+            'origin_latitude' => ['nullable', 'required_with:origin_longitude', 'numeric', 'between:-90,90'],
+            'origin_longitude' => ['nullable', 'required_with:origin_latitude', 'numeric', 'between:-180,180'],
             'destination' => ['required', 'string', 'max:120'],
             'vehicle_make_id' => ['required', 'integer', 'exists:vehicle_makes,id'],
             'vehicle_model_id' => ['required', 'integer', 'exists:vehicle_models,id'],
@@ -71,6 +73,12 @@ class CompareTravelCostsRequest extends FormRequest
             'origin.required' => '出発地を入力してください。',
             'origin.string' => '出発地は文字で入力してください。',
             'origin.max' => '出発地は120文字以内で入力してください。',
+            'origin_latitude.required_with' => '現在地の緯度と経度を両方取得してください。',
+            'origin_latitude.numeric' => '現在地の緯度を正しく取得できませんでした。',
+            'origin_latitude.between' => '現在地の緯度を正しく取得できませんでした。',
+            'origin_longitude.required_with' => '現在地の緯度と経度を両方取得してください。',
+            'origin_longitude.numeric' => '現在地の経度を正しく取得できませんでした。',
+            'origin_longitude.between' => '現在地の経度を正しく取得できませんでした。',
             'destination.required' => '目的地を入力してください。',
             'destination.string' => '目的地は文字で入力してください。',
             'destination.max' => '目的地は120文字以内で入力してください。',
