@@ -2,10 +2,24 @@
 
 namespace Tests\Feature;
 
+use App\Models\VehicleMake;
+use App\Models\VehicleModel;
+use App\Models\VehicleVariant;
+use Database\Seeders\VehicleCatalogSeeder;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class TravelCostComparisonFormTest extends TestCase
 {
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->seed(VehicleCatalogSeeder::class);
+    }
+
     public function test_comparison_form_is_displayed(): void
     {
         $response = $this->get(route('comparisons.create'));
@@ -15,17 +29,29 @@ class TravelCostComparisonFormTest extends TestCase
             ->assertSee('高速道路 vs 下道')
             ->assertSee('出発地')
             ->assertSee('目的地')
-            ->assertSee('車の燃費')
+            ->assertSee('メーカー')
+            ->assertSee('車種')
+            ->assertSee('グレード・駆動方式')
+            ->assertSee('トヨタ')
+            ->assertSee('vehicle-catalog-data')
+            ->assertSee('燃費')
+            ->assertSee('燃料種別')
             ->assertSee('燃料単価')
             ->assertSee('有料道路の利用条件');
     }
 
     public function test_valid_comparison_conditions_are_accepted(): void
     {
+        [$make, $model, $variant] = $this->priusSelection();
+
         $response = $this->post(route('comparisons.store'), [
             'origin' => '東京駅',
             'destination' => '名古屋駅',
+            'vehicle_make_id' => $make->id,
+            'vehicle_model_id' => $model->id,
+            'vehicle_variant_id' => $variant->id,
             'fuel_efficiency' => 15.5,
+            'fuel_type' => 'premium',
             'fuel_price' => 175,
             'toll_preference' => 'compare',
         ]);
@@ -47,7 +73,11 @@ class TravelCostComparisonFormTest extends TestCase
             ->assertSessionHasErrors([
                 'origin' => '出発地を入力してください。',
                 'destination' => '目的地を入力してください。',
+                'vehicle_make_id' => 'メーカーを選択してください。',
+                'vehicle_model_id' => '車種を選択してください。',
+                'vehicle_variant_id' => 'グレード・駆動方式を選択してください。',
                 'fuel_efficiency' => '車の燃費を入力してください。',
+                'fuel_type' => '燃料種別を選択してください。',
                 'fuel_price' => '燃料単価を入力してください。',
                 'toll_preference' => '有料道路の利用条件を選択してください。',
             ]);
@@ -55,9 +85,14 @@ class TravelCostComparisonFormTest extends TestCase
 
     public function test_numeric_fields_reject_out_of_range_values(): void
     {
+        [$make, $model, $variant] = $this->priusSelection();
+
         $response = $this->post(route('comparisons.store'), [
             'origin' => '東京駅',
             'destination' => '名古屋駅',
+            'vehicle_make_id' => $make->id,
+            'vehicle_model_id' => $model->id,
+            'vehicle_variant_id' => $variant->id,
             'fuel_efficiency' => 0,
             'fuel_price' => 1001,
             'toll_preference' => 'unknown',
@@ -68,5 +103,35 @@ class TravelCostComparisonFormTest extends TestCase
             'fuel_price' => '燃料単価は1,000円/L以下で入力してください。',
             'toll_preference' => '有料道路の利用条件を正しく選択してください。',
         ]);
+    }
+
+    public function test_vehicle_selection_must_use_a_consistent_catalog_hierarchy(): void
+    {
+        $priusVariant = VehicleVariant::query()->where('name', '2.0L HEV 2WD')->firstOrFail();
+        $mazda = VehicleMake::query()->where('slug', 'mazda')->firstOrFail();
+
+        $response = $this->post(route('comparisons.store'), [
+            'origin' => '東京駅',
+            'destination' => '名古屋駅',
+            'vehicle_make_id' => $mazda->id,
+            'vehicle_model_id' => $priusVariant->vehicleModel->id,
+            'vehicle_variant_id' => $priusVariant->id,
+            'fuel_efficiency' => 28.6,
+            'fuel_price' => 175,
+            'toll_preference' => 'compare',
+        ]);
+
+        $response->assertSessionHasErrors([
+            'vehicle_variant_id' => 'メーカー、車種、グレードの組み合わせを正しく選択してください。',
+        ]);
+    }
+
+    private function priusSelection(): array
+    {
+        $variant = VehicleVariant::query()->where('name', '2.0L HEV 2WD')->firstOrFail();
+        $model = VehicleModel::query()->findOrFail($variant->vehicle_model_id);
+        $make = VehicleMake::query()->findOrFail($model->vehicle_make_id);
+
+        return [$make, $model, $variant];
     }
 }

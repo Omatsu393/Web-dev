@@ -35,7 +35,7 @@
                     </div>
                 @endif
 
-                <form method="POST" action="{{ route('comparisons.store') }}" class="space-y-8" novalidate>
+                <form method="POST" action="{{ route('comparisons.store') }}" class="space-y-8" data-comparison-form novalidate>
                     @csrf
 
                     <div class="grid gap-6 sm:grid-cols-2">
@@ -84,9 +84,78 @@
                         </div>
                     </div>
 
+                    <fieldset class="rounded-3xl border border-white/10 bg-slate-900/50 p-5 sm:p-6">
+                        <legend class="px-2 text-base font-bold text-emerald-300">車種から燃費を設定</legend>
+                        <p class="mb-5 text-sm leading-6 text-slate-400">メーカー、車種、グレードの順に選択してください。</p>
+
+                        <div class="grid gap-5 lg:grid-cols-3">
+                            <div>
+                                <label for="vehicle_make_id" class="block text-sm font-semibold text-slate-100">メーカー</label>
+                                <select
+                                    id="vehicle_make_id"
+                                    name="vehicle_make_id"
+                                    data-selected="{{ old('vehicle_make_id') }}"
+                                    @class([
+                                        'mt-2 w-full rounded-2xl border bg-slate-950/80 px-4 py-3.5 text-white outline-none transition focus:ring-4',
+                                        'border-rose-400 focus:border-rose-300 focus:ring-rose-400/10' => $errors->has('vehicle_make_id'),
+                                        'border-white/10 focus:border-emerald-400 focus:ring-emerald-400/10' => ! $errors->has('vehicle_make_id'),
+                                    ])
+                                >
+                                    <option value="">選択してください</option>
+                                    @foreach ($vehicleCatalog as $make)
+                                        <option value="{{ $make['id'] }}" @selected((string) old('vehicle_make_id') === (string) $make['id'])>{{ $make['name'] }}</option>
+                                    @endforeach
+                                </select>
+                                @error('vehicle_make_id')
+                                    <p class="mt-2 text-sm text-rose-300">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label for="vehicle_model_id" class="block text-sm font-semibold text-slate-100">車種</label>
+                                <select
+                                    id="vehicle_model_id"
+                                    name="vehicle_model_id"
+                                    data-selected="{{ old('vehicle_model_id') }}"
+                                    disabled
+                                    @class([
+                                        'mt-2 w-full rounded-2xl border bg-slate-950/80 px-4 py-3.5 text-white outline-none transition focus:ring-4 disabled:cursor-not-allowed disabled:opacity-50',
+                                        'border-rose-400 focus:border-rose-300 focus:ring-rose-400/10' => $errors->has('vehicle_model_id'),
+                                        'border-white/10 focus:border-emerald-400 focus:ring-emerald-400/10' => ! $errors->has('vehicle_model_id'),
+                                    ])
+                                >
+                                    <option value="">メーカーを先に選択</option>
+                                </select>
+                                @error('vehicle_model_id')
+                                    <p class="mt-2 text-sm text-rose-300">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label for="vehicle_variant_id" class="block text-sm font-semibold text-slate-100">グレード・駆動方式</label>
+                                <select
+                                    id="vehicle_variant_id"
+                                    name="vehicle_variant_id"
+                                    data-selected="{{ old('vehicle_variant_id') }}"
+                                    disabled
+                                    @class([
+                                        'mt-2 w-full rounded-2xl border bg-slate-950/80 px-4 py-3.5 text-white outline-none transition focus:ring-4 disabled:cursor-not-allowed disabled:opacity-50',
+                                        'border-rose-400 focus:border-rose-300 focus:ring-rose-400/10' => $errors->has('vehicle_variant_id'),
+                                        'border-white/10 focus:border-emerald-400 focus:ring-emerald-400/10' => ! $errors->has('vehicle_variant_id'),
+                                    ])
+                                >
+                                    <option value="">車種を先に選択</option>
+                                </select>
+                                @error('vehicle_variant_id')
+                                    <p class="mt-2 text-sm text-rose-300">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+                    </fieldset>
+
                     <div class="grid gap-6 sm:grid-cols-2">
                         <div>
-                            <label for="fuel_efficiency" class="block text-sm font-semibold text-slate-100">車の燃費</label>
+                            <label for="fuel_efficiency" class="block text-sm font-semibold text-slate-100">燃費</label>
                             <div class="relative mt-2">
                                 <input
                                     id="fuel_efficiency"
@@ -106,11 +175,30 @@
                                 >
                                 <span class="pointer-events-none absolute inset-y-0 right-4 flex items-center text-sm text-slate-400">km/L</span>
                             </div>
+                            <p id="catalog-fuel-efficiency" class="mt-2 text-xs text-slate-400" aria-live="polite">車種を選ぶとカタログ燃費を自動入力します。実燃費に合わせて変更できます。</p>
                             @error('fuel_efficiency')
                                 <p id="fuel-efficiency-error" class="mt-2 text-sm text-rose-300">{{ $message }}</p>
                             @enderror
                         </div>
 
+                        <div>
+                            <label for="fuel_type_display" class="block text-sm font-semibold text-slate-100">燃料種別</label>
+                            <input id="fuel_type" name="fuel_type" type="hidden" value="{{ old('fuel_type') }}">
+                            <input
+                                id="fuel_type_display"
+                                type="text"
+                                value=""
+                                placeholder="車種から自動設定"
+                                readonly
+                                class="mt-2 w-full cursor-default rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-3.5 text-slate-300 outline-none"
+                            >
+                            @error('fuel_type')
+                                <p class="mt-2 text-sm text-rose-300">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+
+                    <div class="grid gap-6 sm:grid-cols-2">
                         <div>
                             <label for="fuel_price" class="block text-sm font-semibold text-slate-100">燃料単価</label>
                             <div class="relative mt-2">
@@ -187,5 +275,7 @@
             </aside>
         </section>
     </main>
+
+    <script type="application/json" id="vehicle-catalog-data">@json($vehicleCatalog)</script>
 </body>
 </html>
