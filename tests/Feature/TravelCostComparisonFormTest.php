@@ -40,6 +40,7 @@ class TravelCostComparisonFormTest extends TestCase
             ->assertSee('燃費')
             ->assertSee('燃料種別')
             ->assertSee('燃料単価')
+            ->assertSee('乗車人数')
             ->assertSee('有料道路の利用条件');
     }
 
@@ -56,6 +57,7 @@ class TravelCostComparisonFormTest extends TestCase
             'fuel_efficiency' => 15.5,
             'fuel_type' => 'premium',
             'fuel_price' => 175,
+            'passenger_count' => 3,
             'toll_preference' => 'compare',
         ]);
 
@@ -82,6 +84,7 @@ class TravelCostComparisonFormTest extends TestCase
                 'fuel_efficiency' => '車の燃費を入力してください。',
                 'fuel_type' => '燃料種別を選択してください。',
                 'fuel_price' => '燃料単価を入力してください。',
+                'passenger_count' => '乗車人数を入力してください。',
                 'toll_preference' => '有料道路の利用条件を選択してください。',
             ]);
     }
@@ -98,12 +101,14 @@ class TravelCostComparisonFormTest extends TestCase
             'vehicle_variant_id' => $variant->id,
             'fuel_efficiency' => 0,
             'fuel_price' => 1001,
+            'passenger_count' => 21,
             'toll_preference' => 'unknown',
         ]);
 
         $response->assertSessionHasErrors([
             'fuel_efficiency' => '車の燃費は1km/L以上で入力してください。',
             'fuel_price' => '燃料単価は1,000円/L以下で入力してください。',
+            'passenger_count' => '乗車人数は1〜20人で入力してください。',
             'toll_preference' => '有料道路の利用条件を正しく選択してください。',
         ]);
     }
@@ -121,6 +126,7 @@ class TravelCostComparisonFormTest extends TestCase
             'vehicle_variant_id' => $priusVariant->id,
             'fuel_efficiency' => 28.6,
             'fuel_price' => 175,
+            'passenger_count' => 1,
             'toll_preference' => 'compare',
         ]);
 
@@ -143,6 +149,7 @@ class TravelCostComparisonFormTest extends TestCase
             'vehicle_variant_id' => $variant->id,
             'fuel_efficiency' => 28.6,
             'fuel_price' => 175,
+            'passenger_count' => 4,
             'toll_preference' => 'compare',
         ]);
 
@@ -164,6 +171,7 @@ class TravelCostComparisonFormTest extends TestCase
             'vehicle_variant_id' => $variant->id,
             'fuel_efficiency' => 28.6,
             'fuel_price' => 175,
+            'passenger_count' => 2,
             'toll_preference' => 'compare',
         ]);
 
