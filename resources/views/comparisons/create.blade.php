@@ -100,7 +100,36 @@
 
                     <fieldset class="rounded-3xl border border-white/10 bg-slate-900/50 p-5 sm:p-6">
                         <legend class="px-2 text-base font-bold text-emerald-300">車種から燃費を設定</legend>
-                        <p class="mb-5 text-sm leading-6 text-slate-400">メーカー、車種、グレードの順に選択してください。</p>
+
+                        <div class="mb-6">
+                            <label for="vehicle_search" class="block text-sm font-semibold text-slate-100">車名を入力して検索</label>
+                            <input
+                                id="vehicle_search"
+                                type="search"
+                                list="vehicle-search-options"
+                                placeholder="例：プリウス 2WD"
+                                autocomplete="off"
+                                aria-describedby="vehicle-search-hint vehicle-search-status"
+                                class="mt-2 w-full rounded-2xl border border-emerald-400/30 bg-slate-950/80 px-4 py-3.5 text-white outline-none transition placeholder:text-slate-500 focus:border-emerald-400 focus:ring-4 focus:ring-emerald-400/10"
+                            >
+                            <datalist id="vehicle-search-options">
+                                @foreach ($vehicleCatalog as $make)
+                                    @foreach ($make['models'] as $model)
+                                        @foreach ($model['variants'] as $variant)
+                                            <option value="{{ $make['name'] }} {{ $model['name'] }} {{ $variant['name'] }}（{{ $variant['drive_system'] }}）"></option>
+                                        @endforeach
+                                    @endforeach
+                                @endforeach
+                            </datalist>
+                            <p id="vehicle-search-hint" class="mt-2 text-xs leading-5 text-slate-400">車名やグレードを入力し、表示された候補を選んでください。</p>
+                            <p id="vehicle-search-status" class="mt-1 text-xs text-emerald-300" role="status" aria-live="polite"></p>
+                        </div>
+
+                        <div class="mb-5 flex items-center gap-3 text-xs text-slate-500" aria-hidden="true">
+                            <span class="h-px flex-1 bg-white/10"></span>
+                            <span>または順番に選択</span>
+                            <span class="h-px flex-1 bg-white/10"></span>
+                        </div>
 
                         <div class="grid gap-5 lg:grid-cols-3">
                             <div>
