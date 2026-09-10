@@ -9,6 +9,8 @@ if (comparisonForm) {
     const catalogFuelEfficiency = document.querySelector('#catalog-fuel-efficiency');
     const fuelTypeInput = document.querySelector('#fuel_type');
     const fuelTypeDisplay = document.querySelector('#fuel_type_display');
+    const vehicleSearchInput = document.querySelector('#vehicle_search');
+    const vehicleSearchStatus = document.querySelector('#vehicle-search-status');
     const vehicleCatalog = JSON.parse(catalogElement?.textContent ?? '[]');
 
     const replaceOptions = (select, placeholder, items, selectedValue, labelFor) => {
@@ -70,22 +72,74 @@ if (comparisonForm) {
         );
     };
 
+    const vehicleSearchEntries = vehicleCatalog.flatMap((make) => make.models.flatMap((model) => model.variants.map((variant) => ({
+        make,
+        model,
+        variant,
+        label: `${make.name} ${model.name} ${variant.name}（${variant.drive_system}）`,
+    }))));
+
+    const clearVehicleSearch = () => {
+        vehicleSearchInput.value = '';
+        vehicleSearchStatus.textContent = '';
+    };
+
+    const updateVehicleSearchFromSelection = () => {
+        const variant = selectedVariant();
+
+        if (!variant) {
+            return;
+        }
+
+        const entry = vehicleSearchEntries.find((item) => item.variant.id === variant.id);
+
+        if (entry) {
+            vehicleSearchInput.value = entry.label;
+        }
+    };
+
+    const applyVehicleSearch = () => {
+        const searchValue = vehicleSearchInput.value.trim().toLocaleLowerCase('ja');
+        const entry = vehicleSearchEntries.find((item) => item.label.toLocaleLowerCase('ja') === searchValue);
+
+        if (!entry) {
+            vehicleSearchStatus.textContent = searchValue === '' ? '' : '候補から車種を選択してください。';
+            return;
+        }
+
+        makeSelect.value = String(entry.make.id);
+        populateModels(entry.model.id);
+        populateVariants(entry.variant.id);
+        applyVariant();
+        vehicleSearchInput.value = entry.label;
+        vehicleSearchStatus.textContent = `${entry.model.name} ${entry.variant.name}を設定しました。`;
+    };
+
     makeSelect.addEventListener('change', () => {
         populateModels();
         populateVariants();
         clearVehicleDetails();
+        clearVehicleSearch();
     });
 
     modelSelect.addEventListener('change', () => {
         populateVariants();
         clearVehicleDetails();
+        clearVehicleSearch();
     });
 
-    variantSelect.addEventListener('change', () => applyVariant());
+    variantSelect.addEventListener('change', () => {
+        applyVariant();
+        updateVehicleSearchFromSelection();
+    });
+
+    vehicleSearchInput.addEventListener('input', applyVehicleSearch);
+    vehicleSearchInput.addEventListener('change', applyVehicleSearch);
 
     populateModels(modelSelect.dataset.selected);
     populateVariants(variantSelect.dataset.selected);
     applyVariant(false);
+    updateVehicleSearchFromSelection();
 
     const currentLocationButton = document.querySelector('#use-current-location');
     const currentLocationStatus = document.querySelector('#current-location-status');
