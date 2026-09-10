@@ -2,9 +2,15 @@
 
 namespace Tests\Feature;
 
+use App\Domain\Travel\RouteMetrics;
 use App\Models\VehicleMake;
 use App\Models\VehicleModel;
 use App\Models\VehicleVariant;
+use App\Services\Routing\FakeRouteComparisonProvider;
+use App\Services\Routing\RouteComparisonProvider;
+use App\Services\Routing\RouteComparisonQuery;
+use App\Services\Routing\RoutePair;
+use App\Services\Routing\RouteProviderException;
 use Database\Seeders\VehicleCatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -18,6 +24,12 @@ class TravelCostComparisonFormTest extends TestCase
         parent::setUp();
 
         $this->seed(VehicleCatalogSeeder::class);
+        $this->app->instance(RouteComparisonProvider::class, new FakeRouteComparisonProvider(
+            new RoutePair(
+                highway: new RouteMetrics(distanceKm: 300, durationMinutes: 240, tollYen: 5000),
+                localRoad: new RouteMetrics(distanceKm: 330, durationMinutes: 420, tollYen: 0),
+            ),
+        ));
     }
 
     public function test_comparison_form_is_displayed(): void
@@ -58,7 +70,7 @@ class TravelCostComparisonFormTest extends TestCase
             'vehicle_make_id' => $make->id,
             'vehicle_model_id' => $model->id,
             'vehicle_variant_id' => $variant->id,
-            'fuel_efficiency' => 15.5,
+            'fuel_efficiency' => 15.0,
             'fuel_type' => 'premium',
             'fuel_price' => 175,
             'passenger_count' => 3,
@@ -66,9 +78,17 @@ class TravelCostComparisonFormTest extends TestCase
         ]);
 
         $response
-            ->assertRedirect(route('comparisons.create'))
-            ->assertSessionHasNoErrors()
-            ->assertSessionHas('status');
+            ->assertOk()
+            ->assertSee('比較結果')
+            ->assertSee('300.0km')
+            ->assertSee('330.0km')
+            ->assertSee('20.00L')
+            ->assertSee('3,500円')
+            ->assertSee('8,500円')
+            ->assertSee('2,834円')
+            ->assertSee('3時間0分')
+            ->assertSee('+4,650円')
+            ->assertSee('+1,550円');
     }
 
     public function test_required_fields_show_japanese_validation_messages(): void
@@ -158,8 +178,37 @@ class TravelCostComparisonFormTest extends TestCase
         ]);
 
         $response
-            ->assertRedirect(route('comparisons.create'))
+            ->assertOk()
             ->assertSessionHasNoErrors();
+    }
+
+    public function test_route_provider_errors_return_to_the_form_with_the_input(): void
+    {
+        $this->app->instance(RouteComparisonProvider::class, new class implements RouteComparisonProvider
+        {
+            public function compare(RouteComparisonQuery $query): RoutePair
+            {
+                throw new RouteProviderException('経路検索APIが設定されていません。');
+            }
+        });
+        [$make, $model, $variant] = $this->priusSelection();
+
+        $response = $this->post(route('comparisons.store'), [
+            'origin' => '東京駅',
+            'destination' => '名古屋駅',
+            'vehicle_make_id' => $make->id,
+            'vehicle_model_id' => $model->id,
+            'vehicle_variant_id' => $variant->id,
+            'fuel_efficiency' => 28.6,
+            'fuel_price' => 175,
+            'passenger_count' => 2,
+            'toll_preference' => 'compare',
+        ]);
+
+        $response
+            ->assertRedirect(route('comparisons.create'))
+            ->assertSessionHasErrors(['route' => '経路検索APIが設定されていません。'])
+            ->assertSessionHasInput('origin', '東京駅');
     }
 
     public function test_current_location_requires_a_valid_coordinate_pair(): void
