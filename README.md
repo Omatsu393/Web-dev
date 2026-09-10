@@ -25,7 +25,7 @@ PowerShellで次のコマンドを実行します。
 ```powershell
 Copy-Item .env.example .env
 docker compose up -d --build
-docker compose exec app php artisan migrate
+docker compose exec app php artisan migrate --seed
 ```
 
 起動後は以下へアクセスします。
@@ -35,6 +35,20 @@ docker compose exec app php artisan migrate
 - MySQL: `127.0.0.1:3307`
 
 初回起動時は、アプリコンテナがComposerパッケージを自動でインストールし、`APP_KEY` を生成します。
+
+車種の連動選択は、`migrate --seed` で登録される初期車種データを使用します。
+
+## 必要な環境変数
+
+ローカルの `.env` に以下を設定します。値はGitHubへ登録しません。
+
+| 変数 | 用途 | 必須 |
+| --- | --- | --- |
+| `APP_KEY` | Laravelの暗号化キー | 必須（初回起動時に自動生成） |
+| `DB_*` | MySQL接続情報 | 必須（初期値はローカル開発用） |
+| `GOOGLE_ROUTES_API_KEY` | 距離・時間・ETC通行料金の取得 | 比較計算を使う場合に必須 |
+
+Google CloudでRoutes APIと課金を有効にし、利用制限を設定したAPIキーを `GOOGLE_ROUTES_API_KEY` に保存します。APIキーはブラウザへ渡さず、Laravelからのみ使用します。
 
 ## よく使う操作
 
@@ -81,7 +95,7 @@ docker compose down
 
 - 料金計算ロジックは画面や外部APIから分離し、単体テスト可能にする
 - 外部の経路・高速料金APIはインターフェース越しに利用する
-- 金額は整数の円、距離はメートル、時間は秒を内部表現の基準とする
+- 金額は整数の円、距離はkm、時間は分を計算時の内部表現とする
 - 入力値とAPI応答を検証し、計算根拠を結果画面に表示する
 
 ## ライセンス
