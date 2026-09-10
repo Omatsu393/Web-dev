@@ -31,7 +31,11 @@
                 @if ($errors->any())
                     <div class="mb-7 rounded-2xl border border-rose-400/30 bg-rose-400/10 px-5 py-4 text-sm text-rose-100" role="alert">
                         <p class="font-semibold">入力内容を確認してください。</p>
-                        <p class="mt-1 text-rose-200">{{ $errors->count() }}件の修正が必要です。</p>
+                        @error('route')
+                            <p class="mt-1 text-rose-200">{{ $message }}</p>
+                        @else
+                            <p class="mt-1 text-rose-200">{{ $errors->count() }}件の修正が必要です。</p>
+                        @enderror
                     </div>
                 @endif
 
@@ -327,7 +331,7 @@
                     </fieldset>
 
                     <button type="submit" class="inline-flex w-full items-center justify-center rounded-2xl bg-emerald-400 px-6 py-4 font-bold text-slate-950 transition hover:bg-emerald-300 focus:outline-none focus:ring-4 focus:ring-emerald-400/30">
-                        比較条件を確認する
+                        高速と下道を比較する
                     </button>
                 </form>
             </div>
