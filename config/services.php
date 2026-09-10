@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'google_routes' => [
+        'api_key' => env('GOOGLE_ROUTES_API_KEY'),
+        'endpoint' => 'https://routes.googleapis.com/directions/v2:computeRoutes',
+    ],
+
 ];
